@@ -34,6 +34,7 @@ const decodeRow = decodeStored(
 const decodeParent = decodeStored(
   Schema.Struct({ collection_id: CollectionId })
 )
+
 const decodeCount = decodeStored(Schema.Struct({ total: Schema.Finite }))
 
 /**
@@ -73,6 +74,22 @@ export class RowStore extends Context.Service<
       rowId: RowId,
       propertyId: PropertyId,
       value: CellValue
+    ) => Effect.Effect<
+      void,
+      | RowNotFound
+      | CollectionNotFound
+      | PropertyNotFound
+      | InvalidCellValue
+      | StorageError
+    >
+    /**
+     * Sets several cells of one row in one statement. It checks every value
+     * first, so a bad value changes nothing.
+     */
+    readonly update: (
+      owner: OwnerId,
+      rowId: RowId,
+      values: RowValues
     ) => Effect.Effect<
       void,
       | RowNotFound
@@ -135,6 +152,46 @@ const orderBy = (collection: Collection, sort: SortSpec | null) => {
 const make = Effect.gen(function* () {
   const sql = yield* SqlClient.SqlClient
   const collections = yield* CollectionStore
+
+  const update = (owner: OwnerId, rowId: RowId, values: RowValues) =>
+    Effect.gen(function* () {
+      const parent = (yield* withStorageError(
+        sql`SELECT rows.collection_id FROM rows
+          JOIN collections ON collections.id = rows.collection_id
+          WHERE rows.id = ${rowId} AND collections.owner_id = ${owner}`
+      )).at(0)
+
+      if (parent === undefined) return yield* new RowNotFound({ rowId })
+
+      const { collection_id } = yield* decodeParent(parent)
+      const collection = yield* collections.get(owner, collection_id)
+      const cells = Object.entries(values)
+
+      if (cells.length === 0) return
+
+      // The check also proves that each key is a property id, which is
+      // safe inside a JSON path.
+      for (const [propertyId, value] of cells) {
+        yield* validate(collection, propertyId, value)
+      }
+
+      yield* withStorageError(
+        sql.unsafe(
+          `UPDATE rows
+            SET data = json_set(data, ${cells.map(() => "?, json(?)").join(", ")}),
+                updated_at = ?
+            WHERE id = ?`,
+          [
+            ...cells.flatMap(([propertyId, value]) => [
+              `$.${propertyId}`,
+              JSON.stringify(value),
+            ]),
+            now(),
+            rowId,
+          ]
+        )
+      )
+    })
 
   return RowStore.of({
     page: (collection, filters, sort, offset, limit) =>
@@ -221,27 +278,8 @@ const make = Effect.gen(function* () {
         return rows
       }),
     setCell: (owner, rowId, propertyId, value) =>
-      Effect.gen(function* () {
-        const parent = (yield* withStorageError(
-          sql`SELECT rows.collection_id FROM rows
-            JOIN collections ON collections.id = rows.collection_id
-            WHERE rows.id = ${rowId} AND collections.owner_id = ${owner}`
-        )).at(0)
-
-        if (parent === undefined) return yield* new RowNotFound({ rowId })
-
-        const { collection_id } = yield* decodeParent(parent)
-        const collection = yield* collections.get(owner, collection_id)
-
-        yield* validate(collection, propertyId, value)
-
-        yield* withStorageError(
-          sql`UPDATE rows
-            SET data = json_set(data, ${`$.${propertyId}`}, json(${JSON.stringify(value)})),
-                updated_at = ${now()}
-            WHERE id = ${rowId}`
-        )
-      }),
+      update(owner, rowId, { [propertyId]: value }),
+    update,
     remove: (owner, rowIds) =>
       withStorageError(
         Effect.forEach(
