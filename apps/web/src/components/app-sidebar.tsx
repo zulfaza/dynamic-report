@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -14,6 +15,7 @@ import {
   Database01Icon,
   PackageAddIcon,
 } from "@hugeicons/core-free-icons"
+import type { User } from "@workos/authkit-tanstack-react-start"
 import { useState } from "react"
 
 import {
@@ -32,13 +34,14 @@ import type { DeleteTarget } from "@/features/shell/delete-dialog"
 
 import { NavList } from "./nav-list"
 import { NavSecondary } from "./nav-secondary"
+import { NavUser } from "./nav-user"
 
 /**
  * The app sidebar, after shadcn sidebar-08 ("an inset sidebar with
  * secondary navigation"): brand header, one group per kind of page, and
  * secondary actions at the foot.
  */
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: User }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -171,6 +174,9 @@ export function AppSidebar() {
           />
         </div>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
       {deleting !== null && (
         <DeleteDialog target={deleting} onClose={() => setDeleting(null)} />
       )}

@@ -4,7 +4,9 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  redirect,
 } from "@tanstack/react-router"
+import { getAuth } from "@workos/authkit-tanstack-react-start"
 
 import appCss from "@workspace/ui/globals.css?url"
 
@@ -14,11 +16,16 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { Separator } from "@workspace/ui/components/separator"
+import { Toaster } from "@workspace/ui/components/sonner"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb"
 import { AppSidebar } from "@/components/app-sidebar"
 import { NotFound } from "@/components/not-found"
+import { signInHref } from "@/lib/return-pathname"
+
+/** Pages that open without a user. The other auth routes are server only. */
+const publicPaths = new Set(["/sign-out"])
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -67,6 +74,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
     }),
     notFoundComponent: NotFound,
+    // Every app page needs a signed-in user. Server functions check it
+    // again; see src/api/owner.ts.
+    beforeLoad: async ({ location }) => {
+      const { user } = await getAuth()
+
+      if (user === null && !publicPaths.has(location.pathname))
+        throw redirect({
+          href: signInHref(location.href),
+          reloadDocument: true,
+        })
+
+      return { user }
+    },
     component: AppLayout,
     shellComponent: RootDocument,
   }
@@ -77,10 +97,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * in an inset card with a trigger and breadcrumb on top.
  */
 function AppLayout() {
+  const { user } = Route.useRouteContext()
+
+  if (user === null) return <Outlet />
+
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar user={user} />
         <SidebarInset>
           <header className="flex h-12 shrink-0 items-center gap-2 px-4">
             <SidebarTrigger />
@@ -104,6 +128,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster />
         <Scripts />
       </body>
     </html>
