@@ -8,9 +8,7 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsrs --noEmit --fast"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
@@ -27,14 +25,11 @@
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "latest",
-    "@tanstack/eslint-config": "latest",
     "@tanstack/router-cli": "^1.167.46",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
-    "eslint": "^10",
-    "typescript": "^6.0.2",
     "vite": "^8"
   }
 }
