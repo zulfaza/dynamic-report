@@ -9,14 +9,12 @@ import {
   MultiplicationSignCircleIcon,
 } from "@hugeicons/core-free-icons"
 
-import { cn } from "@workspace/ui/lib/utils"
-
 /**
  * shadcn Sonner, with the theme tokens and the panel radius. Up to four
  * toasts show in a stack; hover or Alt+T expands it. Mount it once, at the
  * root. See DESIGN.md, "Toasts".
  */
-function Toaster({ className, style, ...props }: ToasterProps) {
+function Toaster({ style, ...props }: ToasterProps) {
   const toastStyle = {
     "--normal-bg": "var(--popover)",
     "--normal-text": "var(--popover-foreground)",
@@ -27,7 +25,6 @@ function Toaster({ className, style, ...props }: ToasterProps) {
 
   return (
     <Sonner
-      className={cn("toaster group", className)}
       position="bottom-right"
       visibleToasts={4}
       gap={8}
@@ -48,7 +45,11 @@ function Toaster({ className, style, ...props }: ToasterProps) {
           />
         ),
         warning: (
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} className="size-4" />
+          <HugeiconsIcon
+            icon={Alert02Icon}
+            strokeWidth={2}
+            className="size-4"
+          />
         ),
         error: (
           <HugeiconsIcon

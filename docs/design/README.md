@@ -8,12 +8,12 @@ The system comes from dGrape, an earlier project with the provisional name DFE. 
 
 The user approved these references. Resend is excluded. Do not copy their logos, mascots or exact colors.
 
-| Reference | Lesson | Limit |
-| --- | --- | --- |
-| [Oyenza](https://oyenza.com/) | Explain features with familiar examples and a warm character | Adapt it to a data workspace |
-| [GitHub](https://github.com/home) | Show the product through real workflows | An original sloth, no GitHub branding |
-| [PostHog](https://posthog.com/) | Show many tools together and keep character | Keep navigation and data views calmer |
-| [Duolingo](https://blog.duolingo.com/reshaping-duo/) | A clear silhouette that supports a set of expressions | No streaks or pressure |
+| Reference                                            | Lesson                                                       | Limit                                 |
+| ---------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------- |
+| [Oyenza](https://oyenza.com/)                        | Explain features with familiar examples and a warm character | Adapt it to a data workspace          |
+| [GitHub](https://github.com/home)                    | Show the product through real workflows                      | An original sloth, no GitHub branding |
+| [PostHog](https://posthog.com/)                      | Show many tools together and keep character                  | Keep navigation and data views calmer |
+| [Duolingo](https://blog.duolingo.com/reshaping-duo/) | A clear silhouette that supports a set of expressions        | No streaks or pressure                |
 
 The measured study is in [reference-study.md](reference-study.md).
 

@@ -15,19 +15,19 @@ This system comes from dGrape, an earlier project with the same sloth. The desig
 
 All values are semantic CSS variables in `packages/ui/src/styles/globals.css`. Radius roles are in `packages/ui/src/styles/geometry.css`. When a token changes, change this document in the same commit.
 
-| Role | Light | Dark | Purpose |
-| --- | --- | --- | --- |
-| Background | #F5F7F5 | #1E1F21 | Quiet canvas of the page |
-| Secondary, muted | #EEF1EE | #2D2E31 | Quiet groups and control states |
-| Foreground | #24332B | #E9EAEC | Main text and headings |
-| Card, popover | #FFFFFF | #252628, #2D2E31 | Surfaces that have a clear content purpose |
-| Primary | #315847 | #8CC9A7 | One main action in each group |
-| Accent | #E6BD5B | #284435 | Small selection or bookmark mark |
-| Muted foreground | #59665D | #B5B8BE | Secondary text, with readable contrast |
-| Border | #C3CBC5 | #44464A | Edges of data and controls |
-| Sidebar | #315847 | #232427 | Forest frame around the page |
-| Sidebar accent | #3E6655 | #284435 | Hover and current row in the sidebar |
-| Sidebar primary | #E6BD5B | #8CC9A7 | Bookmark on the current sidebar row |
+| Role             | Light   | Dark             | Purpose                                    |
+| ---------------- | ------- | ---------------- | ------------------------------------------ |
+| Background       | #F5F7F5 | #1E1F21          | Quiet canvas of the page                   |
+| Secondary, muted | #EEF1EE | #2D2E31          | Quiet groups and control states            |
+| Foreground       | #24332B | #E9EAEC          | Main text and headings                     |
+| Card, popover    | #FFFFFF | #252628, #2D2E31 | Surfaces that have a clear content purpose |
+| Primary          | #315847 | #8CC9A7          | One main action in each group              |
+| Accent           | #E6BD5B | #284435          | Small selection or bookmark mark           |
+| Muted foreground | #59665D | #B5B8BE          | Secondary text, with readable contrast     |
+| Border           | #C3CBC5 | #44464A          | Edges of data and controls                 |
+| Sidebar          | #315847 | #232427          | Forest frame around the page               |
+| Sidebar accent   | #3E6655 | #284435          | Hover and current row in the sidebar       |
+| Sidebar primary  | #E6BD5B | #8CC9A7          | Bookmark on the current sidebar row        |
 
 Status tokens: `success`, `warning` and `destructive`, each with a `-surface` pair. `mascot-surface` is the pale yellow behind a sloth note.
 
@@ -43,12 +43,12 @@ IBM Plex Sans for all text: headings, navigation, prose and data. Use 400 for bo
 
 Spacing uses a 4px base: 8, 12, 16, 24, 32 and 48px. Use `gap` before stacked margins.
 
-| Role | Value | Used by |
-| --- | --- | --- |
-| Small | 4px | Checkbox, menu item, tooltip, icon action |
-| Control | 6px | Button, input, select trigger, sidebar row |
-| Panel | 8px | Dialog, popover, menu, sheet, toast, page inset |
-| Note | 12px | Contextual sloth note |
+| Role    | Value | Used by                                         |
+| ------- | ----- | ----------------------------------------------- |
+| Small   | 4px   | Checkbox, menu item, tooltip, icon action       |
+| Control | 6px   | Button, input, select trigger, sidebar row      |
+| Panel   | 8px   | Dialog, popover, menu, sheet, toast, page inset |
+| Note    | 12px  | Contextual sloth note                           |
 
 Equal components use the same role, also in portals. Use full pills only for small status chips. Borders and space define surfaces. Buttons, inputs and cards are flat. Only floating layers (dialog, popover, menu, toast) get a small shadow. Do not put the same card frame around each block.
 
@@ -71,13 +71,13 @@ The sloth is flat: warm brown shapes, a pale face, clear dark eye patches, simpl
 
 Poses are transparent 512×512 PNGs in `apps/web/public/brand/mascot`. Show them with the `Mascot` component (`apps/web/src/components/mascot.tsx`). They are decorative: the text near them carries the meaning.
 
-| Pose | Use |
-| --- | --- |
-| wave | Home page, first visit |
-| chart | Empty dashboard: add the first panel |
-| laptop | Connect an agent (MCP setup) |
-| celebrate | Rare completion moments |
-| thinking | Not found, nothing matches |
+| Pose      | Use                                  |
+| --------- | ------------------------------------ |
+| wave      | Home page, first visit               |
+| chart     | Empty dashboard: add the first panel |
+| laptop    | Connect an agent (MCP setup)         |
+| celebrate | Rare completion moments              |
+| thinking  | Not found, nothing matches           |
 
 Use the sloth in welcome, empty and not-found states, and in rare completion moments. It does not replace a status label, show progress, cover data or celebrate a failure. It does not move in the workspace. To add a pose, generate it from the model reference and record the prompt in `docs/design/assets/mascot-library.md`.
 
