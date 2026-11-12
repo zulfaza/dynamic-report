@@ -8,13 +8,18 @@ import { DatabaseLive } from "./database"
 import { QueryEngine, QueryEngineLive } from "./query-engine"
 import { RowStore, RowStoreLive } from "./row-store"
 
-const AppLive = Layer.mergeAll(
+/** The stores and the query engine on D1. The MCP server uses it too. */
+export const AppLive = Layer.mergeAll(
   RowStoreLive,
   QueryEngineLive,
   DashboardStoreLive
 ).pipe(Layer.provideMerge(CollectionStoreLive), Layer.provide(DatabaseLive))
 
-type AppServices = CollectionStore | RowStore | DashboardStore | QueryEngine
+export type AppServices =
+  | CollectionStore
+  | RowStore
+  | DashboardStore
+  | QueryEngine
 
 /** One runtime per isolate. Layers build on the first request. */
 const runtime = ManagedRuntime.make(AppLive)
