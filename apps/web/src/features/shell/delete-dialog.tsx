@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useLocation, useNavigate } from "@tanstack/react-router"
+import { toast } from "sonner"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -32,11 +33,13 @@ const copy = {
     title: "Delete dashboard?",
     body: "This removes the dashboard and its panels. The collections and their rows stay.",
     action: "Delete dashboard",
+    done: "Dashboard deleted",
   },
   collection: {
     title: "Delete collection?",
     body: "This removes the collection and all its rows. Panels that read it will show an error.",
     action: "Delete collection",
+    done: "Collection deleted",
   },
 }
 
@@ -65,6 +68,7 @@ export function DeleteDialog({
       })
       void queryClient.invalidateQueries({ queryKey: ["frame"] })
       onClose()
+      toast.success(text.done, { description: target.name })
 
       // Leave the page of the thing that no longer exists.
       if (pathname.includes(target.id)) await navigate({ to: "/" })
