@@ -8,7 +8,9 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsrs --noEmit --fast"
+    "typecheck": "tsrs --noEmit --fast",
+    "deploy": "cf deploy",
+    "cf-typegen": "cf workers types"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
@@ -24,12 +26,14 @@
     "tailwindcss": "^4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-beta.v.15",
     "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.167.46",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
+    "cf": "1.0.0-beta.30",
     "vite": "^8"
   }
 }

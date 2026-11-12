@@ -6,6 +6,7 @@ allowBuilds:
   esbuild: true
   lightningcss: true
   msw: false
+  workerd: true
 
 minimumReleaseAgeExclude:
   - "@tsrs/darwin-arm64@0.25.0-ts7.1.0-beta"

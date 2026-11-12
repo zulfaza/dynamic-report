@@ -17,3 +17,7 @@ todos.json
 
 # typescript
 *.tsbuildinfo
+
+# cloudflare
+.cloudflare
+.dev.vars*
