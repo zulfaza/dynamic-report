@@ -41,8 +41,8 @@ function StatView({ frame }: { frame: Frame }) {
   const value = toNumber(frame.rows.at(-1)?.[measure])
 
   return (
-    <div className="flex size-full flex-col justify-end gap-1 overflow-hidden">
-      <span className="font-display text-5xl leading-none font-semibold tracking-tight tabular-nums">
+    <div className="@container flex size-full flex-col justify-end gap-1 overflow-hidden">
+      <span className="font-display text-3xl @3xs:text-4xl @xs:text-5xl leading-none font-semibold tracking-tight tabular-nums">
         {value === null ? "–" : formatNumber(value)}
       </span>
       <span className="text-xs text-muted-foreground">
