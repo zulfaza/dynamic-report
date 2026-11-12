@@ -49,6 +49,16 @@ export const LayoutRowId = Schema.String.check(idPattern("lrow")).pipe(
 
 export type LayoutRowId = typeof LayoutRowId.Type
 
+/**
+ * The WorkOS user that owns a collection or a dashboard. It is the `id` of
+ * the AuthKit user, and the `sub` claim of its access token.
+ */
+export const OwnerId = Schema.String.check(
+  Schema.isPattern(/^user_[A-Za-z0-9]+$/)
+).pipe(Schema.brand("OwnerId"))
+
+export type OwnerId = typeof OwnerId.Type
+
 const token = () => crypto.randomUUID().replaceAll("-", "")
 
 export const newId = {

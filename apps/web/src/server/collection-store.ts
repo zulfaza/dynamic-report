@@ -9,7 +9,7 @@ import type { PropertyType, Collection } from "@/domain/collection"
 import { CollectionNotFound, PropertyNotFound } from "@/domain/errors"
 import type { StorageError } from "@/domain/errors"
 import { CollectionId, newId } from "@/domain/ids"
-import type { PropertyId } from "@/domain/ids"
+import type { OwnerId, PropertyId } from "@/domain/ids"
 
 import { decodeStored, now, withStorageError } from "./storage"
 
@@ -24,26 +24,39 @@ const StoredCollection = Schema.Struct({
 const decodeCollection = decodeStored(StoredCollection)
 const encodeProperties = Schema.encodeSync(PropertiesJson)
 
+/**
+ * The collections of one owner. Every method takes the owner id; a
+ * collection of another owner is not found.
+ */
 export class CollectionStore extends Context.Service<
   CollectionStore,
   {
-    readonly list: Effect.Effect<ReadonlyArray<Collection>, StorageError>
+    readonly list: (
+      owner: OwnerId
+    ) => Effect.Effect<ReadonlyArray<Collection>, StorageError>
     readonly get: (
+      owner: OwnerId,
       id: CollectionId
     ) => Effect.Effect<Collection, CollectionNotFound | StorageError>
-    readonly create: (input: {
-      readonly name: string
-      readonly properties: ReadonlyArray<Property>
-    }) => Effect.Effect<Collection, StorageError>
+    readonly create: (
+      owner: OwnerId,
+      input: {
+        readonly name: string
+        readonly properties: ReadonlyArray<Property>
+      }
+    ) => Effect.Effect<Collection, StorageError>
     readonly rename: (
+      owner: OwnerId,
       id: CollectionId,
       name: string
     ) => Effect.Effect<Collection, CollectionNotFound | StorageError>
     readonly addProperty: (
+      owner: OwnerId,
       id: CollectionId,
       input: { readonly name: string; readonly type: PropertyType }
     ) => Effect.Effect<Collection, CollectionNotFound | StorageError>
     readonly updateProperty: (
+      owner: OwnerId,
       id: CollectionId,
       property: Property
     ) => Effect.Effect<
@@ -52,32 +65,37 @@ export class CollectionStore extends Context.Service<
     >
     /** Drops the property from the schema and its values from every row. */
     readonly removeProperty: (
+      owner: OwnerId,
       id: CollectionId,
       propertyId: PropertyId
     ) => Effect.Effect<
       Collection,
       CollectionNotFound | PropertyNotFound | StorageError
     >
-    readonly remove: (id: CollectionId) => Effect.Effect<void, StorageError>
+    readonly remove: (
+      owner: OwnerId,
+      id: CollectionId
+    ) => Effect.Effect<void, StorageError>
   }
 >()("dynamic-report/CollectionStore") {}
 
 const make = Effect.gen(function* () {
   const sql = yield* SqlClient.SqlClient
 
-  const list = withStorageError(
-    Effect.gen(function* () {
-      const rows =
-        yield* sql`SELECT id, name, properties FROM collections ORDER BY created_at`
+  const list = (owner: OwnerId) =>
+    withStorageError(
+      Effect.gen(function* () {
+        const rows =
+          yield* sql`SELECT id, name, properties FROM collections WHERE owner_id = ${owner} ORDER BY created_at`
 
-      return yield* Effect.forEach(rows, decodeCollection)
-    })
-  )
+        return yield* Effect.forEach(rows, decodeCollection)
+      })
+    )
 
-  const get = (id: CollectionId) =>
+  const get = (owner: OwnerId, id: CollectionId) =>
     Effect.gen(function* () {
       const rows = yield* withStorageError(
-        sql`SELECT id, name, properties FROM collections WHERE id = ${id}`
+        sql`SELECT id, name, properties FROM collections WHERE id = ${id} AND owner_id = ${owner}`
       )
 
       const row = rows.at(0)
@@ -106,7 +124,7 @@ const make = Effect.gen(function* () {
   return CollectionStore.of({
     list,
     get,
-    create: ({ name, properties }) => {
+    create: (owner, { name, properties }) => {
       const collection: Collection = {
         id: newId.collection(),
         name,
@@ -114,15 +132,15 @@ const make = Effect.gen(function* () {
       }
 
       return withStorageError(
-        sql`INSERT INTO collections (id, name, properties, created_at)
-            VALUES (${collection.id}, ${name}, ${encodeProperties(properties)}, ${now()})`.pipe(
+        sql`INSERT INTO collections (id, name, properties, created_at, owner_id)
+            VALUES (${collection.id}, ${name}, ${encodeProperties(properties)}, ${now()}, ${owner})`.pipe(
           Effect.as(collection)
         )
       )
     },
-    rename: (id, name) =>
+    rename: (owner, id, name) =>
       Effect.gen(function* () {
-        const collection = yield* get(id)
+        const collection = yield* get(owner, id)
 
         yield* withStorageError(
           sql`UPDATE collections SET name = ${name} WHERE id = ${id}`
@@ -130,9 +148,9 @@ const make = Effect.gen(function* () {
 
         return { ...collection, name }
       }),
-    addProperty: (id, input) =>
+    addProperty: (owner, id, input) =>
       Effect.gen(function* () {
-        const collection = yield* get(id)
+        const collection = yield* get(owner, id)
         const property: Property = { id: newId.property(), ...input }
 
         return yield* writeProperties(collection, [
@@ -140,9 +158,9 @@ const make = Effect.gen(function* () {
           property,
         ])
       }),
-    updateProperty: (id, next) =>
+    updateProperty: (owner, id, next) =>
       Effect.gen(function* () {
-        const collection = yield* get(id)
+        const collection = yield* get(owner, id)
 
         yield* findProperty(collection, next.id)
 
@@ -153,9 +171,9 @@ const make = Effect.gen(function* () {
           )
         )
       }),
-    removeProperty: (id, propertyId) =>
+    removeProperty: (owner, id, propertyId) =>
       Effect.gen(function* () {
-        const collection = yield* get(id)
+        const collection = yield* get(owner, id)
 
         yield* findProperty(collection, propertyId)
 
@@ -168,11 +186,12 @@ const make = Effect.gen(function* () {
           collection.properties.filter((property) => property.id !== propertyId)
         )
       }),
-    remove: (id) =>
+    remove: (owner, id) =>
       withStorageError(
         Effect.gen(function* () {
-          yield* sql`DELETE FROM rows WHERE collection_id = ${id}`
-          yield* sql`DELETE FROM collections WHERE id = ${id}`
+          yield* sql`DELETE FROM rows WHERE collection_id IN
+            (SELECT id FROM collections WHERE id = ${id} AND owner_id = ${owner})`
+          yield* sql`DELETE FROM collections WHERE id = ${id} AND owner_id = ${owner}`
         })
       ),
   })

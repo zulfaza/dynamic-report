@@ -2,6 +2,7 @@ import { D1Client } from "@effect/sql-d1"
 import { env } from "cloudflare:workers"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
+import * as Schema from "effect/Schema"
 import * as SqlClient from "effect/sql/SqlClient"
 
 /**
@@ -39,10 +40,38 @@ const statements = [
   )`,
 ]
 
+/** Tables that `migrations/0002_owner.sql` gives an `owner_id` column. */
+const ownedTables = ["collections", "dashboards"] as const
+
+const ownerIndexes = [
+  `CREATE INDEX IF NOT EXISTS collections_by_owner ON collections (owner_id, created_at)`,
+  `CREATE INDEX IF NOT EXISTS dashboards_by_owner ON dashboards (owner_id, name)`,
+]
+
+const decodeColumns = Schema.decodeUnknownEffect(
+  Schema.Array(Schema.Struct({ name: Schema.String }))
+)
+
 const migrate = Effect.gen(function* () {
   const sql = yield* SqlClient.SqlClient
 
   for (const statement of statements) {
+    yield* sql.unsafe(statement).raw
+  }
+
+  // SQLite has no `ADD COLUMN IF NOT EXISTS`, so look before the change.
+  for (const table of ownedTables) {
+    const columns = yield* decodeColumns(
+      yield* sql.unsafe(`PRAGMA table_info(${table})`)
+    ).pipe(Effect.orDie)
+
+    if (!columns.some((column) => column.name === "owner_id"))
+      yield* sql.unsafe(
+        `ALTER TABLE ${table} ADD COLUMN owner_id TEXT NOT NULL DEFAULT ''`
+      ).raw
+  }
+
+  for (const statement of ownerIndexes) {
     yield* sql.unsafe(statement).raw
   }
 })

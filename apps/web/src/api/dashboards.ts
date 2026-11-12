@@ -12,53 +12,76 @@ import type {
 import { DashboardStore, QueryEngine, runServer } from "@/server/runtime"
 import { createSampleData } from "@/server/sample-data"
 
+import { requireOwner } from "./owner"
+
 const input = <S extends Schema.Decoder<unknown>>(schema: S) =>
   Schema.toStandardSchemaV1(schema)
 
-export const listDashboards = createServerFn({ method: "GET" }).handler(() =>
-  runServer(DashboardStore.use((store) => store.list))
-)
+export const listDashboards = createServerFn({ method: "GET" })
+  .middleware([requireOwner])
+  .handler(({ context }) =>
+    runServer(DashboardStore.use((store) => store.list(context.owner)))
+  )
 
 export const getDashboard = createServerFn({ method: "GET" })
+  .middleware([requireOwner])
   .validator(input(Schema.Struct({ dashboardId: DashboardId })))
-  .handler(({ data }) =>
-    runServer(DashboardStore.use((store) => store.get(data.dashboardId)))
+  .handler(({ data, context }) =>
+    runServer(
+      DashboardStore.use((store) => store.get(context.owner, data.dashboardId))
+    )
   )
 
 export const createDashboard = createServerFn({ method: "POST" })
+  .middleware([requireOwner])
   .validator(input(Schema.Struct({ name: Schema.String })))
-  .handler(({ data }) =>
+  .handler(({ data, context }) =>
     runServer(
       DashboardStore.use((store) =>
-        store.create({ name: data.name, timeRange: "30d", rows: [] })
+        store.create(context.owner, {
+          name: data.name,
+          timeRange: "30d",
+          rows: [],
+        })
       )
     )
   )
 
 export const saveDashboard = createServerFn({ method: "POST" })
+  .middleware([requireOwner])
   .validator(input(Schema.Struct({ dashboard: Dashboard })))
-  .handler(({ data }) =>
-    runServer(DashboardStore.use((store) => store.save(data.dashboard)))
+  .handler(({ data, context }) =>
+    runServer(
+      DashboardStore.use((store) => store.save(context.owner, data.dashboard))
+    )
   )
 
 export const deleteDashboard = createServerFn({ method: "POST" })
+  .middleware([requireOwner])
   .validator(input(Schema.Struct({ dashboardId: DashboardId })))
-  .handler(({ data }) =>
-    runServer(DashboardStore.use((store) => store.remove(data.dashboardId)))
+  .handler(({ data, context }) =>
+    runServer(
+      DashboardStore.use((store) =>
+        store.remove(context.owner, data.dashboardId)
+      )
+    )
   )
 
 /** POST, because a query is a JSON document and does not fit a URL well. */
 export const runQuery = createServerFn({ method: "POST" })
+  .middleware([requireOwner])
   .validator(input(Schema.Struct({ query: Query, timeRange: TimeRange })))
-  .handler(({ data }) =>
+  .handler(({ data, context }) =>
     runServer(
-      QueryEngine.use((engine) => engine.run(data.query, data.timeRange))
+      QueryEngine.use((engine) =>
+        engine.run(context.owner, data.query, data.timeRange)
+      )
     )
   )
 
-export const loadSampleData = createServerFn({ method: "POST" }).handler(() =>
-  runServer(createSampleData)
-)
+export const loadSampleData = createServerFn({ method: "POST" })
+  .middleware([requireOwner])
+  .handler(({ context }) => runServer(createSampleData(context.owner)))
 
 export const dashboardKeys = {
   all: ["dashboards"] as const,

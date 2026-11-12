@@ -17,7 +17,7 @@ import {
 } from "@/domain/errors"
 import type { CollectionNotFound, StorageError } from "@/domain/errors"
 import { CollectionId, RowId, newId } from "@/domain/ids"
-import type { PropertyId } from "@/domain/ids"
+import type { OwnerId, PropertyId } from "@/domain/ids"
 import type { Filter, SortSpec } from "@/domain/query"
 
 import { CollectionStore } from "./collection-store"
@@ -31,7 +31,9 @@ const decodeRow = decodeStored(
   Schema.Struct({ id: RowId, data: RowValuesJson, created_at: Schema.Finite })
 )
 
-const decodeOwner = decodeStored(Schema.Struct({ collection_id: CollectionId }))
+const decodeParent = decodeStored(
+  Schema.Struct({ collection_id: CollectionId })
+)
 const decodeCount = decodeStored(Schema.Struct({ total: Schema.Finite }))
 
 /**
@@ -43,6 +45,10 @@ const insertBatchSize = 20
 /** One bound parameter per id; stays under the D1 limit of 100. */
 const deleteBatchSize = 90
 
+/**
+ * The rows of a collection. `page` and `insert` take a collection that the
+ * caller read for its owner; `setCell` and `remove` take the owner id.
+ */
 export class RowStore extends Context.Service<
   RowStore,
   {
@@ -63,6 +69,7 @@ export class RowStore extends Context.Service<
       InvalidCellValue | PropertyNotFound | StorageError
     >
     readonly setCell: (
+      owner: OwnerId,
       rowId: RowId,
       propertyId: PropertyId,
       value: CellValue
@@ -75,6 +82,7 @@ export class RowStore extends Context.Service<
       | StorageError
     >
     readonly remove: (
+      owner: OwnerId,
       rowIds: ReadonlyArray<RowId>
     ) => Effect.Effect<void, StorageError>
   }
@@ -212,16 +220,18 @@ const make = Effect.gen(function* () {
 
         return rows
       }),
-    setCell: (rowId, propertyId, value) =>
+    setCell: (owner, rowId, propertyId, value) =>
       Effect.gen(function* () {
-        const owner = (yield* withStorageError(
-          sql`SELECT collection_id FROM rows WHERE id = ${rowId}`
+        const parent = (yield* withStorageError(
+          sql`SELECT rows.collection_id FROM rows
+            JOIN collections ON collections.id = rows.collection_id
+            WHERE rows.id = ${rowId} AND collections.owner_id = ${owner}`
         )).at(0)
 
-        if (owner === undefined) return yield* new RowNotFound({ rowId })
+        if (parent === undefined) return yield* new RowNotFound({ rowId })
 
-        const { collection_id } = yield* decodeOwner(owner)
-        const collection = yield* collections.get(collection_id)
+        const { collection_id } = yield* decodeParent(parent)
+        const collection = yield* collections.get(owner, collection_id)
 
         yield* validate(collection, propertyId, value)
 
@@ -232,11 +242,13 @@ const make = Effect.gen(function* () {
             WHERE id = ${rowId}`
         )
       }),
-    remove: (rowIds) =>
+    remove: (owner, rowIds) =>
       withStorageError(
         Effect.forEach(
           Arr.chunksOf(rowIds, deleteBatchSize),
-          (batch) => sql`DELETE FROM rows WHERE ${sql.in("id", batch)}`,
+          (batch) =>
+            sql`DELETE FROM rows WHERE ${sql.in("id", batch)} AND collection_id IN
+              (SELECT id FROM collections WHERE owner_id = ${owner})`,
           { discard: true }
         )
       ),

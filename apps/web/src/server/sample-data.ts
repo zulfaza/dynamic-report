@@ -3,6 +3,7 @@ import * as Effect from "effect/Effect"
 import type { Property, RowValues, SelectColor } from "@/domain/collection"
 import type { LayoutCell, Panel } from "@/domain/dashboard"
 import { newId } from "@/domain/ids"
+import type { OwnerId } from "@/domain/ids"
 import type { Metric, Query } from "@/domain/query"
 
 import { CollectionStore, DashboardStore, RowStore } from "./runtime"
@@ -43,9 +44,11 @@ const random = (seed: number) => {
 
 /**
  * Creates an "Expenses" collection with about 400 rows over the last six
- * months, and a "Finance" dashboard that shows every visualization kind.
+ * months, and a "Finance" dashboard that shows every visualization kind,
+ * both for the owner. It runs on demand: a new owner starts empty and
+ * loads it from the sidebar.
  */
-export const createSampleData = Effect.gen(function* () {
+export const createSampleData = Effect.fnUntraced(function* (owner: OwnerId) {
   const collections = yield* CollectionStore
   const rows = yield* RowStore
   const dashboards = yield* DashboardStore
@@ -86,7 +89,7 @@ export const createSampleData = Effect.gen(function* () {
     type: { _tag: "checkbox" },
   }
 
-  const collection = yield* collections.create({
+  const collection = yield* collections.create(owner, {
     name: "Expenses",
     properties: [name, amount, category, date, paid],
   })
@@ -148,7 +151,7 @@ export const createSampleData = Effect.gen(function* () {
     order: "dimension",
   })
 
-  return yield* dashboards.create({
+  return yield* dashboards.create(owner, {
     name: "Finance",
     timeRange: "90d",
     rows: [

@@ -12,6 +12,7 @@ import type {
   StorageError,
 } from "@/domain/errors"
 import { FrameValue } from "@/domain/query"
+import type { OwnerId } from "@/domain/ids"
 import type { Frame, Query, TimeRange } from "@/domain/query"
 
 import { CollectionStore } from "./collection-store"
@@ -27,7 +28,9 @@ const decodeValues = decodeStored(Schema.Array(Schema.Array(FrameValue)))
 export class QueryEngine extends Context.Service<
   QueryEngine,
   {
+    /** Runs the query on a collection of the owner. */
     readonly run: (
+      owner: OwnerId,
       query: Query,
       timeRange: TimeRange
     ) => Effect.Effect<Frame, CollectionNotFound | InvalidQuery | StorageError>
@@ -39,9 +42,9 @@ const make = Effect.gen(function* () {
   const collections = yield* CollectionStore
 
   return QueryEngine.of({
-    run: (query, timeRange) =>
+    run: (owner, query, timeRange) =>
       Effect.gen(function* () {
-        const collection = yield* collections.get(query.collectionId)
+        const collection = yield* collections.get(owner, query.collectionId)
 
         const compiled = yield* compileQuery(query, {
           collection,
