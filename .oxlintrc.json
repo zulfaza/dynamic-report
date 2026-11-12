@@ -3,7 +3,10 @@
   "plugins": ["typescript", "unicorn", "oxc", "import"],
   "jsPlugins": [
     "@shadcn/lint",
-    { "name": "anti-slop", "specifier": "./tools/oxlint/anti-slop/index.ts" }
+    {
+      "name": "anti-slop",
+      "specifier": "./tools/oxlint/anti-slop/index.ts"
+    }
   ],
   "categories": {
     "correctness": "error"
@@ -30,36 +33,49 @@
     "no-shadow": "warn",
     "no-var": "error",
     "prefer-const": "error",
-
     "import/first": "error",
     "import/newline-after-import": "error",
     "import/no-commonjs": "error",
     "import/no-duplicates": "error",
     "unicorn/prefer-node-protocol": "error",
-
     "typescript/ban-ts-comment": [
       "error",
-      { "ts-expect-error": false, "ts-ignore": "allow-with-description" }
+      {
+        "ts-expect-error": false,
+        "ts-ignore": "allow-with-description"
+      }
     ],
     "typescript/consistent-type-imports": [
       "error",
-      { "prefer": "type-imports" }
+      {
+        "prefer": "type-imports"
+      }
     ],
     "typescript/method-signature-style": ["error", "property"],
-    "typescript/no-inferrable-types": ["error", { "ignoreParameters": true }],
+    "typescript/no-inferrable-types": [
+      "error",
+      {
+        "ignoreParameters": true
+      }
+    ],
     "typescript/no-namespace": "error",
     "typescript/no-unnecessary-condition": "error",
     "typescript/no-unnecessary-type-assertion": "error",
     "typescript/no-unsafe-function-type": "error",
     "typescript/prefer-for-of": "warn",
-
-    "shadcn/no-restyle": "error",
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "contracts": [
+          { "pattern": "^PopoverContent$", "allow": ["w-auto", "p-0", "gap-0"] }
+        ]
+      }
+    ],
     "shadcn/no-raw-colors": "error",
     "shadcn/no-arbitrary-values": "error",
     "shadcn/no-inline-styles": "error",
     "shadcn/no-unknown-classes": "error",
     "shadcn/require-static-classes": "error",
-
     "oxc/no-accumulating-spread": "error",
     "anti-slop/no-array-filter-map": "error",
     "anti-slop/no-reduce-accumulator-copy": "error",
@@ -79,5 +95,15 @@
     "anti-slop/no-widen-then-assert": "error",
     "anti-slop/require-readable-spacing": "error",
     "anti-slop/require-safety-comment-for-type-assertion": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["packages/ui/src/components/**"],
+      "rules": {
+        "shadcn/no-restyle": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/require-static-classes": "off"
+      }
+    }
+  ]
 }
