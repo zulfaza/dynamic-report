@@ -1,0 +1,92 @@
+/*
+ * Shared geometry for the app and for portaled shadcn UI. Each component
+ * gets its radius from its role, not from a private value. See DESIGN.md.
+ * These rules are not in a layer, so they win over the component classes.
+ */
+:root {
+  --dr-radius-small: 4px;
+  --dr-radius-control: 6px;
+  --dr-radius-panel: 8px;
+  --dr-radius-note: 12px;
+  --dr-shadow-overlay: 0 2px 8px rgb(0 0 0 / 0.12);
+  --radius: var(--dr-radius-panel);
+}
+
+:is(
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="sidebar-input"],
+  [data-slot="sidebar-menu-button"],
+  [data-slot="sidebar-menu-sub-button"]
+) {
+  border-radius: var(--dr-radius-control);
+}
+
+:is(
+  [data-slot="checkbox"],
+  [data-slot="dialog-close"],
+  [data-slot="sidebar-menu-action"],
+  [data-slot="sidebar-group-action"],
+  [data-slot="dropdown-menu-item"],
+  [data-slot="select-item"],
+  [data-slot="tooltip-content"]
+) {
+  border-radius: var(--dr-radius-small);
+}
+
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="sheet-content"]
+) {
+  border-radius: var(--dr-radius-panel);
+}
+
+/* Ordinary controls are flat. Floating layers get a small separation. */
+:is(
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"]
+):not(:focus-visible) {
+  box-shadow: none;
+}
+
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"]
+) {
+  box-shadow: var(--dr-shadow-overlay);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  font-family: var(--font-sans);
+  box-shadow: var(--dr-shadow-overlay);
+  border-radius: var(--dr-radius-panel);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Keep a clear focus indicator, because routine control shadows are off. */
+:is(
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"]
+):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
