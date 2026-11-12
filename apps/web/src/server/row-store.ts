@@ -169,27 +169,18 @@ const make = Effect.gen(function* () {
 
       if (cells.length === 0) return
 
-      // The check also proves that each key is a property id, which is
-      // safe inside a JSON path.
       for (const [propertyId, value] of cells) {
         yield* validate(collection, propertyId, value)
       }
 
+      // json_patch binds one parameter for all cells, so D1's limit of 100
+      // parameters does not apply. A null removes the key, which is an
+      // empty cell.
       yield* withStorageError(
-        sql.unsafe(
-          `UPDATE rows
-            SET data = json_set(data, ${cells.map(() => "?, json(?)").join(", ")}),
-                updated_at = ?
-            WHERE id = ?`,
-          [
-            ...cells.flatMap(([propertyId, value]) => [
-              `$.${propertyId}`,
-              JSON.stringify(value),
-            ]),
-            now(),
-            rowId,
-          ]
-        )
+        sql`UPDATE rows
+          SET data = json_patch(data, ${JSON.stringify(values)}),
+              updated_at = ${now()}
+          WHERE id = ${rowId}`
       )
     })
 
