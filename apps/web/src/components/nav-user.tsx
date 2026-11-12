@@ -74,7 +74,7 @@ function UserIdentity({ user, name }: { user: User; name: string }) {
           {name}
         </span>
         <span
-          className="truncate text-xs text-muted-foreground"
+          className="truncate text-xs text-sidebar-muted"
           title={user.email}
         >
           {user.email}

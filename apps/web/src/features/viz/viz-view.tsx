@@ -30,7 +30,7 @@ const noTones = {}
 const tonesAt = (frame: Frame, index: number | undefined) =>
   index === undefined ? noTones : (frame.fields[index]?.tones ?? noTones)
 
-/** One figure, set large in the condensed face, with what it measures below. */
+/** One figure, set large, with what it measures below. */
 function StatView({ frame }: { frame: Frame }) {
   const { measures } = frameRoles(frame)
   const measure = measures.at(0)
