@@ -91,14 +91,18 @@ export function AppSidebar({ user }: { user: User }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link to="/" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />
-              </div>
+              <img
+                src="/favicon.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 shrink-0"
+              />
               <div className="grid flex-1 text-left leading-tight">
                 <span className="truncate font-display text-base font-semibold tracking-tight">
                   Dynamic Report
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-sidebar-muted">
                   Personal workspace
                 </span>
               </div>
