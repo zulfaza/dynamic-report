@@ -18,6 +18,7 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb"
 import { AppSidebar } from "@/components/app-sidebar"
+import { NotFound } from "@/components/not-found"
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -65,12 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "manifest", href: "/manifest.json" },
       ],
     }),
-    notFoundComponent: () => (
-      <main className="container mx-auto p-4 pt-16">
-        <h1>404</h1>
-        <p>The requested page could not be found.</p>
-      </main>
-    ),
+    notFoundComponent: NotFound,
     component: AppLayout,
     shellComponent: RootDocument,
   }

@@ -43,6 +43,7 @@ import {
   structureKey,
 } from "./layout"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { Mascot } from "@/components/mascot"
 
 import { PanelBody } from "./panel-body"
 import { PanelEditor } from "./panel-editor"
@@ -429,6 +430,7 @@ export function DashboardView({
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {draft.rows.length === 0 ? (
               <div className="flex flex-1 flex-col items-start gap-3 px-6 pt-10 text-sm text-muted-foreground">
+                <Mascot pose="chart" size={112} className="-ml-2" />
                 <p>
                   No panels yet. Add a row, then choose data for each panel.
                 </p>
