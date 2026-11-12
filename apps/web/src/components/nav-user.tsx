@@ -70,11 +70,11 @@ function UserIdentity({ user, name }: { user: User; name: string }) {
         />
       )}
       <div className="grid min-w-0 flex-1 text-sm leading-tight">
-        <span className="truncate font-medium text-foreground" title={name}>
+        <span className="truncate font-medium" title={name}>
           {name}
         </span>
         <span
-          className="truncate text-xs text-sidebar-muted"
+          className="truncate text-xs opacity-70"
           title={user.email}
         >
           {user.email}
